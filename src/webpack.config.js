@@ -9,7 +9,7 @@
 });
  
  module.exports = {
-     entry: ['./js/atd-super-table.js', './sass/atd-super-table.scss'],
+     entry: ['./js/AtdSuperTable.js', './sass/atd-super-table.scss'],
      output: {
          path: path.resolve(__dirname, '../dist/js'),
          filename: 'atd-super-table.min.js'
