@@ -59,12 +59,35 @@ class LockTable {
         this.containerEl.setAttribute('aria-hidden', '');
         this.superTableEl.appendChild(this.containerEl);
 
+        let containerWidth = 0;
+
         if(this.columnData.length) {
             this.columnData.forEach(function(column, index) {
+                this.table.querySelector('tbody').style.transform = `translateY(${column.headHeight}px)`;
                 column.head.style.width = `${column.width}px`;
+                containerWidth += column.width;
                 this.table.querySelector('thead tr').appendChild(column.head);
             }.bind(this));
+
+            let tableBody = this.table.querySelector('tbody');
+            let rowCount = this.columnData[0].rows.length;
+            for(let i = 0; i < rowCount; i++) {
+                let row = document.createElement('tr');
+
+                this.columnData.forEach((column) => {
+                    column.rows[i].style.width = `${column.width}px`;
+                    column.rows[i].style.height = `${column.rowsHeights[i]}px`;
+                    row.appendChild(column.rows[i]);
+                });
+
+                tableBody.appendChild(row);
+            }
         }
+
+        let adjWidth = (this.table.offsetWidth - this.table.clientWidth)/2;
+        this.table.style.width = `${this.table.offsetWidth + adjWidth}px`;
+
+        this.containerEl.style.width = `${containerWidth}px`;
     }
 
     addColumn(column) {

@@ -14,12 +14,11 @@ class ATDSuperTable {
         this.lockTable = null;
         this.lockTableRear = null;
         this.lockedColumns = [];
-        // this.settings = Object.assign({
-        //     'stackedBreakpoint': 991,
-        //     'maxLocked': true
-        // }, options);
-
-        
+        this.lastScrollTime = Date.now();
+        this.settings = Object.assign({
+            'stackedBreakpoint': 991,
+            'maxLocked': true
+        }, options);
 
         window.setTimeout(function() {
             this.loadColumns();
@@ -32,12 +31,7 @@ class ATDSuperTable {
             this.layoutTable();
         }.bind(this), 100);
 
-        // this.dataTable.querySelectorAll('th').forEach(function(node) {
-        //     this.originalHeaders.push(node.innerText);
-        // }.bind(this));
-        
-        
-        // window.addEventListener('resize', this.layoutTable.bind(this));
+        window.addEventListener('resize', this.layoutTable.bind(this));
     }
 
     loadColumns() {
@@ -75,8 +69,34 @@ class ATDSuperTable {
     }
 
     updateTableScrollPosition(e) {
-        let frame = e.target;
-        this.fixedHeader.style.transform = `translateY(${e.target.scrollTop}px)`;
+            let time = Date.now();
+
+            if((time - this.lastScrollTime) < 15 ) {
+                console.log('discarded');
+                e.stopPropagation();
+                return false;
+            }
+
+            console.log('processed');
+
+            if(e.target === this.responsiveEl) {
+                this.fixedHeader.style.transform = `translate3D(0,${e.target.scrollTop}px, 0)`;
+            }
+
+            if(e.target !== this.responsiveEl) {
+                this.responsiveEl.scrollTop = e.target.scrollTop;
+            }
+
+            if(this.lockTable) {
+                this.lockTable.table.scrollTop = e.target.scrollTop;
+                
+            }
+    
+            if(this.lockTableRear) {
+                this.lockTableRear.table.scrollTop = e.target.scrollTop;
+            }
+
+            this.lastScrollTime = time;
     }
 
     createFixedHead() {
@@ -114,22 +134,34 @@ class ATDSuperTable {
     }
 
     layoutTable() {        
+        this.containerEl.classList.remove('stacked', 'compact');
+
+        if(this.lockTable) {
+            this.lockTable.destroy();
+            this.lockTable = null;
+        }
+
+        if(this.lockTableRear) {
+            this.lockTableRear.destroy();
+            this.lockTableRear = null;
+        }
+
         if(this.isTableHeightSet()) {
             this.createFixedHead();
             this.setTableMaxHeight();
         }
 
-        // if(window.innerWidth <= this.settings.stackedBreakpoint) {
-        //         this.containerEl.classList.add('stacked');
-        //         this.setStackedHeadings();
-        //         return;
-        // }
-        // else if(this.dataTable.offsetWidth <= this.containerEl.offsetWidth) {
-        //     return;
-        // } 
-        // else {
-        //         this.containerEl.classList.add('compact');
-        // }
+        if(window.innerWidth <= this.settings.stackedBreakpoint) {
+                this.containerEl.classList.add('stacked');
+                this.setStackedHeadings();
+                return;
+        }
+        else if(this.dataTable.offsetWidth <= this.containerEl.offsetWidth) {
+            return;
+        } 
+        else {
+                this.containerEl.classList.add('compact');
+        }
         
         if(this.isTableLockable()) {
             // this.placeLocks();
@@ -149,9 +181,10 @@ class ATDSuperTable {
                     initialLocked.push(column.getColumnCopy());
                 }
             }.bind(this));
-        
+            
             this.lockTable = new LockTable(this.containerEl, this.dataTable, false, initialLocked);
-
+            this.lockTable.table.addEventListener('scroll', this.updateTableScrollPosition.bind(this));
+            
             initialLocked = [];
             this.lockedRear.forEach(function(id) {
                 let column = this.getColumnByID(id);
@@ -162,16 +195,11 @@ class ATDSuperTable {
             }.bind(this));
         
             this.lockTableRear = new LockTable(this.containerEl, this.dataTable, true, initialLocked);
-        
-                // this.lockTable.calculateLockTableSize(this.allLocked);
-                // this.toggleColumnVisibility(true, this.allLocked, this.lockTable);
-            
-            // this.autoLockedRear = this.getAutoLocked('data-auto-lock-rear');    
-            // if(this.autoLockedRear.length) {
-            //     this.lockTableRear = new LockTable(this.containerEl, this.dataTable, true);
-            //     // this.lockTableRear.calculateLockTableSize(this.autoLockedRear);
-            //     // this.toggleColumnVisibility(true, this.autoLockedRear, this.lockTableRear);
-            // }
+            this.lockTableRear.table.addEventListener('scroll', this.updateTableScrollPosition.bind(this));
+
+            let scrollBarOffset = this.responsiveEl.offsetWidth - this.responsiveEl.clientWidth;
+            console.log(scrollBarOffset);
+            this.lockTableRear.containerEl.style.transform =  `translate3D(-${scrollBarOffset}px, 0px, 0px)`;
 
         //     this.calculateMaxLocked();
 
@@ -182,18 +210,18 @@ class ATDSuperTable {
         }
     }
 
-    // setStackedHeadings() {
-    //     var columnHeads = this.dataTable.querySelectorAll('th');
-    //     var rows = this.dataTable.querySelectorAll('tbody tr');
-    //     rows.forEach(function(row) {
-    //         var cells = row.querySelectorAll('td');
-    //         cells.forEach(function(cell, i) {
-    //                 if(columnHeads[i].innerText.length && !columnHeads[i].innerText.match(/^\s$/) && !columnHeads[i].innerText.match(/\xA0$/g)) {
-    //                         cell.setAttribute('data-heading', columnHeads[i].innerText);
-    //                 }
-    //         });
-    //     });
-    // }
+    setStackedHeadings() {
+        var columnHeads = this.dataTable.querySelectorAll('th');
+        var rows = this.dataTable.querySelectorAll('tbody tr');
+        rows.forEach(function(row) {
+            var cells = row.querySelectorAll('td');
+            cells.forEach(function(cell, i) {
+                    if(columnHeads[i].innerText.length && !columnHeads[i].innerText.match(/^\s$/) && !columnHeads[i].innerText.match(/\xA0$/g)) {
+                            cell.setAttribute('data-heading', columnHeads[i].innerText);
+                    }
+            });
+        });
+    }
 
     // toggleLocked(e) {
     //     if(!this.isTableLockable()) {
@@ -305,14 +333,6 @@ class ATDSuperTable {
     //     }
     //     else {
     //         this.dataTable.classList.remove('max-locked');
-    //     }
-    // }
-    
-    // toggleColumnVisibility(visible, lockedList, lockTable) {
-    //     if(this.lockTable) {
-    //             for(var i = 0, length = lockedList.length; i < length; i++) {
-    //             this.lockTable.table.querySelectorAll('th')[i].style.visibility = 'visible';
-    //             }
     //     }
     // }
 }

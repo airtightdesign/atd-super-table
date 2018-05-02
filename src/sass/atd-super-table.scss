@@ -156,7 +156,6 @@
         top: 0;
         bottom: 14px;
         left: 0;
-        overflow: hidden;
         z-index: 1;
         background-color: #fff;
         padding-top: 30px;
@@ -172,18 +171,38 @@
         }
         
         .lock-table-inner {
+            width: 100%;
             height: calc(100% + 4px);
             border-top: 4px solid #555;
             border-left: 4px solid #555;
             transform: translateY(-4px);
+            overflow: hidden;
         }
         
         .table {
+            display: block;
+            height: 100%;
+            overflow-y: auto;
+
+            thead {
+                position: fixed;
+                z-index: 2;
+            }
+
+            tbody {
+                position: relative;
+                z-index: 1;
+
+                tr:last-child {
+                    margin-bottom: 12px;
+                }
+            }
+
             th,
             th.sort.active {
-                    background-color: #555;
-                    border-color-right: #555;
-                }
+                background-color: #555;
+                border-color-right: #555;
+            }
         }
         
         &.rear {
@@ -207,6 +226,13 @@
             }
         }
     }
+
+    &.stacked {
+        .lock-table-container {
+            display: none;
+        }
+    }
+
     &.toggle-icons {
         a[data-lock-column] {
             &:before {

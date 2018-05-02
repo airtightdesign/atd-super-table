@@ -4,32 +4,10 @@ class Column {
         this.head = head;
         this.rows = rows;
         this.width = this.head ? this.head.offsetWidth : 0;
+        this.headHeight = this.head ? this.head.offsetHeight : 0;
+        this.rowsHeights = [];
     }
 
-    destroyColumn() {
-        if(this.head) {
-            this.head.remove();
-            this.head = null;
-        }
-
-        this.rows.forEach((row, index) => {
-            if(row) {
-                row.remove();
-            }
-        });
-        this.rows = [];
-
-        return null;
-    }
-
-    copyTo(table, index) {
-
-    }
-
-    moveTo(table, index) {
-        table.querySelector('tr').appendChild(this.head);
-    }
-    
     setHead(head) {
         if(head) {
             this.head = head;
@@ -43,6 +21,10 @@ class Column {
     setRows(rows) {
         if(rows) {
             this.rows = rows;
+
+            this.rows.forEach(function(row) {
+                this.rowsHeights.push(row.offsetHeight);
+            }.bind(this));
         }
     }
 
@@ -60,7 +42,9 @@ class Column {
             id: this.id,
             head: this.head.cloneNode(true),
             rows: clonedRows,
-            width: this.width
+            width: this.width,
+            headHeight: this.headHeight,
+            rowsHeights: this.rowsHeights
         }
     }
 }
