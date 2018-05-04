@@ -23,9 +23,9 @@
         min-width: 100%;
 
         &.table-fixed {
-                @media (max-width: 767px) {
-                        table-layout: initial;
-                }
+            @media (max-width: 767px) {
+                    table-layout: initial;
+            }
         }
         
         th {
@@ -43,29 +43,36 @@
     }
 
     &[data-lockable] {
-        padding-top: 30px;
+        th {
+            position: relative;
+            padding-right: 26px;
+        }
     }
-    
+
     a[data-lock-column] {
-        opacity: .5;
+        opacity: .25;
         transition: opacity .3s ease-in-out;
         cursor: pointer;
         display: none;
         position: absolute;
-        left: 0;
+        top: 0;
         right: 0;
+        bottom: 0;
         width: 14px;
         height: 14px;
-        margin: 0 0 0 6px;
-        bottom: calc(100% + 6px);
+        margin: auto 6px;
         background: no-repeat;
         background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M400 256H152V152.9c0-39.6 31.7-72.5 71.3-72.9 40-.4 72.7 32.1 72.7 72v16c0 13.3 10.7 24 24 24h32c13.3 0 24-10.7 24-24v-16C376 68 307.5-.3 223.5 0 139.5.3 72 69.5 72 153.5V256H48c-26.5 0-48 21.5-48 48v160c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V304c0-26.5-21.5-48-48-48zM264 408c0 22.1-17.9 40-40 40s-40-17.9-40-40v-48c0-22.1 17.9-40 40-40s40 17.9 40 40v48z"/></svg>');
         background-size: contain;
+
+        &:hover {
+            opacity: .5;
+        }
     }
     
     &.compact {
         a[data-lock-column] {
-            display: block;
+            display: inline-block;
         }
         
         .max-locked {
@@ -92,9 +99,9 @@
         tr,
         th,
         td {
-                display: block;
-                background: none;
-                text-align: left;
+            display: block;
+            background: none;
+            text-align: left;
         }
 
         .table>tbody>tr:nth-of-type(odd) {
@@ -158,7 +165,6 @@
         left: 0;
         z-index: 1;
         background-color: #fff;
-        padding-top: 30px;
         border-bottom: 4px solid #555;
         box-shadow: 3px 3px 3px 1px rgba(0, 0, 0, .25);
 
@@ -167,7 +173,12 @@
         }
          
         a[data-lock-column] {
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M400 224h-24v-72C376 68.2 307.8 0 224 0S72 68.2 72 152v72H48c-26.5 0-48 21.5-48 48v192c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V272c0-26.5-21.5-48-48-48zm-104 0H152v-72c0-39.7 32.3-72 72-72s72 32.3 72 72v72z"/></svg>');
+            opacity: .4;
+            background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3Csvg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 448 512' style='enable-background:new 0 0 448 512;' xml:space='preserve'%3E%3Cstyle type='text/css'%3E .st0%7Bfill:%23FFFFFF;%7D%0A%3C/style%3E%3Cpath class='st0' d='M400,224h-24v-72C376,68.2,307.8,0,224,0S72,68.2,72,152v72H48c-26.5,0-48,21.5-48,48v192c0,26.5,21.5,48,48,48 h352c26.5,0,48-21.5,48-48V272C448,245.5,426.5,224,400,224z M296,224H152v-72c0-39.7,32.3-72,72-72s72,32.3,72,72V224z'/%3E%3C/svg%3E%0A");
+
+            &:hover {
+                opacity: .6;
+            }
         }
         
         .lock-table-inner {
@@ -201,7 +212,7 @@
             th,
             th.sort.active {
                 background-color: #555;
-                border-color-right: #555;
+                border-right-color: #555;
             }
         }
         

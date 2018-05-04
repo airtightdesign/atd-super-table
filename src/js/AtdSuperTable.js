@@ -15,6 +15,7 @@ class ATDSuperTable {
         this.lockTableRear = null;
         this.lockedColumns = [];
         this.lastScrollTime = Date.now();
+        this.lockButtons = null;
         this.settings = Object.assign({
             'stackedBreakpoint': 991,
             'maxLocked': true
@@ -23,15 +24,18 @@ class ATDSuperTable {
         window.setTimeout(function() {
             this.loadColumns();
 
+            this.createLockButtons();
+
             if(this.isTableLockable()) {
                 this.lockedColumns = this.getAutoLocked('data-auto-lock');
                 this.lockedRear = this.getAutoLocked('data-auto-lock-rear');
             }
 
             this.layoutTable();
-        }.bind(this), 100);
+        }.bind(this), 250);
 
         window.addEventListener('resize', this.layoutTable.bind(this));
+        this.containerEl.addEventListener('click', this.toggleLocked.bind(this));;
     }
 
     loadColumns() {
@@ -69,34 +73,29 @@ class ATDSuperTable {
     }
 
     updateTableScrollPosition(e) {
-            let time = Date.now();
-
-            if((time - this.lastScrollTime) < 15 ) {
-                console.log('discarded');
-                e.stopPropagation();
-                return false;
-            }
-
-            console.log('processed');
-
-            if(e.target === this.responsiveEl) {
-                this.fixedHeader.style.transform = `translate3D(0,${e.target.scrollTop}px, 0)`;
-            }
-
-            if(e.target !== this.responsiveEl) {
-                this.responsiveEl.scrollTop = e.target.scrollTop;
-            }
-
-            if(this.lockTable) {
+        if(e.srcElement.matches('#lock-table')) {
+            console.log('hi');
+            e.preventDefault();
+            return false;
+        }
+        else if(e.srcElement.matches('#lock-table-rear')) {
+            e.preventDefault();
+            return false;
+        }
+        else {
+            this.fixedHeader.style.transform = `translate3D(0,${e.target.scrollTop}px, 0)`;
+            
+            if(this.lockTable.table) {
                 this.lockTable.table.scrollTop = e.target.scrollTop;
                 
             }
-    
-            if(this.lockTableRear) {
+
+            if(this.lockTableRear.table) {
                 this.lockTableRear.table.scrollTop = e.target.scrollTop;
             }
 
-            this.lastScrollTime = time;
+            e.stopImmediatePropagation();
+        }
     }
 
     createFixedHead() {
@@ -135,6 +134,7 @@ class ATDSuperTable {
 
     layoutTable() {        
         this.containerEl.classList.remove('stacked', 'compact');
+        this.restoreColumnOrder();
 
         if(this.lockTable) {
             this.lockTable.destroy();
@@ -164,26 +164,20 @@ class ATDSuperTable {
         }
         
         if(this.isTableLockable()) {
-            // this.placeLocks();
-
-            // this.allLocked.sort(function(a, b) {
-            //     if(a.index < b.index) {
-            //         return -1;
-            //     }
-            //     return 1;
-            // });
-
             let initialLocked = [];
             this.lockedColumns.forEach(function(id) {
                 let column = this.getColumnByID(id);
 
                 if(column) {
                     initialLocked.push(column.getColumnCopy());
+                    this.moveColumn(id);
                 }
             }.bind(this));
             
             this.lockTable = new LockTable(this.containerEl, this.dataTable, false, initialLocked);
-            this.lockTable.table.addEventListener('scroll', this.updateTableScrollPosition.bind(this));
+            if(this.lockTable.table) {
+                this.lockTable.table.addEventListener('scroll', this.updateTableScrollPosition.bind(this));
+            }
             
             initialLocked = [];
             this.lockedRear.forEach(function(id) {
@@ -195,18 +189,13 @@ class ATDSuperTable {
             }.bind(this));
         
             this.lockTableRear = new LockTable(this.containerEl, this.dataTable, true, initialLocked);
-            this.lockTableRear.table.addEventListener('scroll', this.updateTableScrollPosition.bind(this));
-
-            let scrollBarOffset = this.responsiveEl.offsetWidth - this.responsiveEl.clientWidth;
-            console.log(scrollBarOffset);
-            this.lockTableRear.containerEl.style.transform =  `translate3D(-${scrollBarOffset}px, 0px, 0px)`;
-
+            if(this.lockTableRear.table) {
+                this.lockTableRear.table.addEventListener('scroll', this.updateTableScrollPosition.bind(this));
+                let scrollBarOffset = this.responsiveEl.offsetWidth - this.responsiveEl.clientWidth;
+                this.lockTableRear.containerEl.style.transform =  `translate3D(-${scrollBarOffset}px, 0px, 0px)`;
+            }
+           
         //     this.calculateMaxLocked();
-
-            // var lockButtons = this.containerEl.querySelectorAll('[data-lock-column]');
-            // lockButtons.forEach(function(btn) {
-            //     btn.addEventListener('click', this.toggleLocked.bind(this));
-            // }.bind(this));
         }
     }
 
@@ -223,41 +212,53 @@ class ATDSuperTable {
         });
     }
 
-    // toggleLocked(e) {
-    //     if(!this.isTableLockable()) {
-    //         return;
-    //     }
+    toggleLocked(e) {
+        if(!this.isTableLockable()) {
+            return;
+        }
 
-    //     var columnHead = e.target.parentElement;
-    //     var headerRow = columnHead.parentElement;
-    //     var isLocked = this.lockTable.containsColumn(columnHead);
+        if(e.target.matches('[data-lock-column]')) {
+            let columnID = parseInt(e.target.getAttribute('data-lock-column'), 10);
 
-       
-    //     this.clearLockTables();
-        
-    //     if(isLocked) {
-    //     //     this.manuallyLocked = removeFromLocked(this.manuallyLocked);
-    //     //     this.autoLocked = removeFromLocked(this.autoLocked);
+            let index = this.lockedColumns.indexOf(columnID);
+            if(index >= 0) {
+                this.lockedColumns.splice(index, 1);
+            }
+            else {
+                this.lockedColumns.push(columnID);
+            }
             
-    //     //     function removeFromLocked(lockedList) {
-    //     //         var locked = [];
-    //     //         for(var i = 0, length = lockedList.length; i < length; i++) { 
-    //     //             if(columnHead.innerText !== lockedList[i].el.innerText) {
-    //     //                 locked.push(lockedList[i]);
-    //     //             }
-    //     //         }
-    //     //         return locked;  
-    //     //     }
-    //     }
-    //     else {      
-    //             this.manuallyLocked.push({
-    //                 index: Array.prototype.indexOf.call(headerRow.children, columnHead),
-    //                 el: columnHead
-    //             });
-    //     }
+            this.layoutTable();
+        }
+    }
+
+    moveColumn(columnID, isFront = true) {
+        let column = this.getColumnByID(columnID);
+        let headRow = this.dataTable.querySelector('thead tr');
+        let dataRows = this.dataTable.querySelectorAll('tbody tr');
         
-    //     this.layoutTable();
-    // }
+        if(isFront) {
+            headRow.insertBefore(column.head, headRow.firstChild);
+        }
+        else {
+            headRow.appendChild(column.head, null);
+        }
+
+        column.rows.forEach(function(row, index) {
+            if(isFront) {
+                dataRows[index].insertBefore(row, dataRows[index].firstChild);
+            }
+            else {
+                dataRows[index].appendChild(row, null);
+            }
+        }.bind(this));
+    }
+
+    restoreColumnOrder() {
+        this.columns.forEach(function(column) {
+            this.moveColumn(column.id, false);
+        }.bind(this));
+    }
 
     getAutoLocked(autoLockAttr) {
         var lockedList = [];
@@ -269,56 +270,17 @@ class ATDSuperTable {
         return lockedList;
     }
 
-    // placeLocks() {
-    //     var columnHeads = this.dataTable.querySelectorAll('th');
-    //     columnHeads.forEach(function(th) {
-    //         this.placeLock(th);
-    //     }.bind(this));
-    // }
-    
-    // placeLock(th) {
-    //     var lock = document.createElement('A');
-    //     lock.setAttribute('data-lock-column', '');
-    //     th.appendChild(lock);
-    // }
+    createLockButtons() {
+        if(!this.isTableLockable()) {
+            return;
+        }
 
-    // restoreTable() {
-    //     if(!this.isTableLockable()) {
-    //         return;
-    //     }
-
-    //     this.restoreOrignialOrder();
-        
-    //     this.dataTable.querySelectorAll('th').forEach(function(node) {
-    //         var anchor = node.querySelector('[data-lock-column]');
-    //         if(anchor) {
-    //             anchor.remove();
-    //         }
-            
-    //     });
-        
-    //     if(this.lockTable) {   
-    //         this.lockTable = this.lockTable.destroy(); 
-    //     }
-        
-    //     if(this.lockTableRear) {
-    //         this.lockTableRear = this.lockTableRear.destroy(); 
-    //     }
-
-    //     this.containerEl.classList.remove('compact', 'stacked');
-    // }
-    
-    // restoreOrignialOrder() {
-    //     var currentOrder = this.dataTable.querySelectorAll('th');
-    //     for(var i = 0, length = this.originalHeaders.length; i < length; i++) {
-    //         currentOrder = this.dataTable.querySelectorAll('th');
-    //         // currentOrder.forEach(function(node, index) {
-    //         //     if(this.originalHeaders[i] === node.innerText) {
-    //         //             this.lockTable.moveColumn(this.dataTable, index, i);
-    //         //     }
-    //         // }.bind(this)); 
-    //     }
-    // }
+        this.columns.forEach(function(column) {
+            var lock = document.createElement('a');
+            lock.setAttribute('data-lock-column', column.id);
+            column.head.appendChild(lock);
+        }.bind(this));
+    }
 
     // calculateMaxLocked() {
     //     if(this.settings.maxLocked === false || this.lockTable == undefined || !this.isTableLockable()) {
