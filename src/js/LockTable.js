@@ -84,7 +84,7 @@ class LockTable {
             }
         }
 
-        let adjWidth = (this.table.offsetWidth - this.table.clientWidth)/2;
+        let adjWidth = (this.table.offsetWidth - this.table.clientWidth);
         this.table.style.width = `${this.table.offsetWidth + adjWidth}px`;
 
         this.containerEl.style.width = `${containerWidth}px`;
