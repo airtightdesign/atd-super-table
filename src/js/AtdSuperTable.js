@@ -5,6 +5,8 @@ import './polyfills/object.assign';
 import Column from './Column';
 import LockTable from './LockTable';
 
+import '../sass/atd-super-table.scss';
+
 class ATDSuperTable {    
     constructor(el, options) {
         this.containerEl = el;
