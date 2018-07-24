@@ -14,11 +14,11 @@ class LockTable {
         return null;
     }
 
-    containsColumn (column) {
+    containsColumn (columnID) {
         if(this.columnData) {
             for(let i = 0, length = this.columnData.length; i < length; i++) {
-                if(this.columnData[i].head === column) {
-                    return column;
+                if(this.columnData[i].id === columnID) {
+                    return this.columnData[i];
                 }
             }
         }
@@ -84,29 +84,10 @@ class LockTable {
             }
         }
 
-        let adjWidth = (this.table.offsetWidth - this.table.clientWidth)/2;
+        let adjWidth = (this.table.offsetWidth - this.table.clientWidth);
         this.table.style.width = `${this.table.offsetWidth + adjWidth}px`;
 
         this.containerEl.style.width = `${containerWidth}px`;
-    }
-
-    addColumn(column) {
-        if(this.containsColumn(column.head)) {
-            return;
-        }
-
-        this.columnData.push(column);
-        this.createLockTable();
-    }
-
-    removeColumn(columncolumnHead) {
-        let column = this.containsColumn(columnHead);
-        let index = this.columnData.indexOf(column);
-
-        if(index >= 0) {
-            this.columnData.splice(index, 1);
-            this.createLockTable();
-        }
     }
 }
 
